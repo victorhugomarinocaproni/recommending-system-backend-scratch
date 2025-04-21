@@ -1,0 +1,14 @@
+# VENV
+venv/
+ENV/
+env/
+.venv/
+
+# Python Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# System Files (Mac only)
+.DS_Store
