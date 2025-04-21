@@ -12,3 +12,6 @@ __pycache__/
 
 # System Files (Mac only)
 .DS_Store
+
+# Ignore generated files/data
+/data/
