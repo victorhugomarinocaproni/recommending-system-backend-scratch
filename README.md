@@ -19,7 +19,7 @@ O projeto analisa os ingredientes que o usuário gosta e recomenda drinks semelh
 Abra seu terminal e execute:
 
 ```
-git clone https://github.com/Gstvms/recomendation_project.git
+git clone https://github.com/victorhugomarinocaproni/recommending-system-backend-scratch.git
 cd recomendation_project
 ```
 
