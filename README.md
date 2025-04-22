@@ -63,6 +63,7 @@ ou
 ```
 python src/toy_dataset.py
 ```
+Para maior organização do projeto, ao rodar o script toy_dataset, um diretório '/data' será criado automaticamente, onde o arquivo JSON gerado será colocado. Caso o diretório já exista, apenas o arquivo JSON será sobrescrito. Cada vez que o script toy_dataset é rodado, um novo JSON é gerado, sempre sobrescrevendo o antigo!
 
 ## 6. Como fechar (desativar) o ambiente virtual
 Windows
