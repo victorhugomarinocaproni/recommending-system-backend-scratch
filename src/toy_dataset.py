@@ -18,12 +18,12 @@ def generate_users(num_users=NUM_USERS, seed=42):
 
     users = []
 
-    for _ in range(num_users):
+    for i in range(num_users):
         # Gera um número de ingredientes preferidos para o usuário (entre 2 e 7)
         num_likes = int(np.clip(np.random.normal(loc=4, scale=1.5), 2, 7))
 
         user_likes = random.sample(ingredients_list, num_likes)
-        users.append(user_likes)
+        users.append({"id": i + 1, "likes": user_likes})
 
     return users
 
