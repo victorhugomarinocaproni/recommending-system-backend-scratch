@@ -5,56 +5,43 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-DATASET_PATH = "data/generated_users.json"
+DATA_FILE_PATH = "data/generated_users.json"
 
-if not os.path.exists(DATASET_PATH):
+if not os.path.exists(DATA_FILE_PATH):
     print("Arquivo 'generated_users.json' não encontrado.")
     print("Execute antes o script generate_users.py para gerar os dados.")
     sys.exit(1)
 
-with open(DATASET_PATH, "r", encoding="utf-8") as f:
-    users_data = json.load(f)
+with open(DATA_FILE_PATH, "r", encoding="utf-8") as file:
+    user_profiles = json.load(file)
 
-# Obter todos os ingredientes únicos de todos os usuários
-all_ingredients = sorted(
-    list({ing for user in users_data for ing in user["liked_ingredients"]})
+unique_ingredients = sorted(
+    list({ingredient for user in user_profiles for ingredient in user["liked_ingredients"]})
 )
 
-# Criar vetores de entrada (X) e rótulos (y)
-entry_data = []
-labels = []
+feature_vectors = []
+target_labels = []
 
-for user in users_data:
-    user_vector = [1 if ingredient in user["liked_ingredients"] else 0 for ingredient in all_ingredients]
-    entry_data.append(user_vector)
-    labels.append(user["most_liked_drink"])
+for user in user_profiles:
+    user_features = [1 if ingredient in user["liked_ingredients"] else 0 for ingredient in unique_ingredients]
+    feature_vectors.append(user_features)
+    target_labels.append(user["most_liked_drink"])
 
-'''
-=======================
-TREINAMENTO E TESTE:
-=======================
-'''
+model = DecisionTreeClassifier(random_state=42)
+model.fit(feature_vectors, target_labels)
 
-clf = DecisionTreeClassifier(random_state=42)
-clf.fit(entry_data, labels)
+def transform_ingredients_to_vector(preferred_ingredients):
+    return [1 if ingredient in preferred_ingredients else 0 for ingredient in unique_ingredients]
 
-def vectorize_ingredients(user_ingredients):
-    return [1 if ingredient in user_ingredients else 0 for ingredient in all_ingredients]
-
-def recommend_drink(user_ingredients):
-    user_vector = vectorize_ingredients(user_ingredients)
-    prediction = clf.predict([user_vector])
-    return prediction[0]
+def predict_favorite_drink(preferred_ingredients):
+    vector = transform_ingredients_to_vector(preferred_ingredients)
+    return model.predict([vector])[0]
 
 if __name__ == "__main__":
-    test_users = [
-        # ["rum", "limão", "hortelã", "açúcar"],  # Mojito tradicional
-        # ["vodka", "cranberry", "limão", "licor de laranja"],  # Cosmopolitan
-        # ["gin", "campari", "vermouth"],  # Negroni
-        # ["rum", "leite de coco", "abacaxi"],  # Piña Colada
-        ["cachaça", "limão", "açúcar"],  # Caipirinha
+    example_users = [
+        ["cachaça", "limão", "açúcar"],
     ]
 
-    for test in test_users:
-        drink = recommend_drink(test)
-        print(f"Para o usuário que gosta de {test}, recomendamos: {drink}")
+    for ingredients in example_users:
+        suggested_drink = predict_favorite_drink(ingredients)
+        print(f"Para o usuário que gosta de {ingredients}, recomendamos: {suggested_drink}")
