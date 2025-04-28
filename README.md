@@ -8,7 +8,7 @@ O projeto analisa os ingredientes que o usuário gosta e recomenda drinks semelh
 
 ## 📋 Tecnologias utilizadas
 - Python 3.8 ou superior
-- Bibliotecas: `scikit-learn`, `numpy`
+- Bibliotecas: `scikit-learn`, `numpy`, `Flask`, `Flasgger`
 
 ---
 
@@ -76,3 +76,26 @@ Mac/Linux
 deactivate
 ```
 
+## 7. Rodar a Flask API
+Executar:
+```
+python app.py
+```
+A API ficará disponível em: 
+`http://0.0.0.0:8080` 
+<br><br>
+O Swagger estará em: 
+`http://0.0.0.0:8080/docs/` 
+<br>
+
+## Como testar o Endpoint do Swagger
+1. Clique no endpoint <strong>[POST]</strong> /recommendation
+2. Clique em <strong>"Try it out"</strong>
+3. No campo "ingredientes", envie uma lista de ingredientes que você quer testar, como por exemplo:
+```
+{
+  "ingredients": ["limão", "rum", "hortelã"]
+}
+```
+4. Clique em <strong>"Execute"</strong>
+5. Você receberá como resposta uma Lista com as Top 3 mais Condizentes com seu gosto
