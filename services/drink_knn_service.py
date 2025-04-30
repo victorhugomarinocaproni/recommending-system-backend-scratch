@@ -78,8 +78,8 @@ def recommend_top_3_drinks_knn(user_profile):
     
     return result
 
-# Testando a função com um exemplo:
-#user_likes = ["limão", "rum", "hortelã"]
-#user_profile = get_user_profile(user_likes)
-#print(recommend_top_3_drinks_knn(user_profile))
+if __name__ == "__main__":
+    user_likes = ["limão", "rum", "hortelã"]
+    user_profile = get_user_profile(user_likes)
+    print(recommend_top_3_drinks_knn(user_profile))
 
