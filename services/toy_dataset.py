@@ -17,7 +17,9 @@ recipes = [
     {"cuba_libre": ["rum", "cola", "limão"]},
     {"bloody_mary": ["vodka", "suco de tomate", "limão", "molho inglês", "pimenta"]},
     {"caipirinha_de_limao": ["cachaça", "limão", "açúcar"]},
-    {"daiquiri": ["rum", "limão", "açúcar"]}
+    {"daiquiri": ["rum", "limão", "açúcar"]},
+    {"whiskey_sour": ["whisky", "limão", "açúcar", "clara de ovo"]},
+    {"tequila_sunrise": ["tequila", "suco de laranja", "groselha"]}
 ]
 
 # Converter recipes em dict com nome -> ingredientes
