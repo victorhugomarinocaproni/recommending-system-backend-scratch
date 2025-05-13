@@ -1,0 +1,109 @@
+=========================
+1 - Quesadilla de Barbacoa
+=========================
+carne de boi, queijo, ovo, mostarda, pimenta jalapeno, nirá
+
+------------------------------------------------
+
+=========================
+2 - Taco Pescado Baja
+=========================
+carne de peixe, repolho, abacate, tomate, pimenta jalapeno, ovo, mostarda, limão, picles, cebola, coentro
+
+------------------------------------------------
+
+=========================
+3 - Taco Camarão 
+=========================
+camarão, repolho, ovo, mostarda, abacate, tomate, pimenta jalapeno, coentro, picles
+
+------------------------------------------------
+
+=========================
+4 - Taco Barbacoa
+=========================
+carne de boi, queijo, cebola , ciboullete, coentro, picles, pimenta jalapeno
+
+------------------------------------------------
+
+=========================
+5 - Gringa Coreana
+=========================
+tortilla, milho, queijo, carne de porco, acelga, nabo, picles, limão, cebola 
+
+------------------------------------------------
+
+=========================
+6 - Taco Birria
+=========================
+carne de boi, queijo, cebola, coentro, pimenta jalapeno, carne 
+
+------------------------------------------------
+
+=========================
+Taco La Flor
+=========================
+couve-flor, feijão, grão de bico, ciboullete
+
+------------------------------------------------
+
+=========================
+7 - Taco de Chorizo
+=========================
+carne de porco, queijo, coentro, tomate, cebola, limão
+
+------------------------------------------------
+
+=========================
+8 - Taco Al Pastor
+=========================
+abóbora, alho, carne de porco, abacaxi, canela, salsa, cebola, coentro
+
+------------------------------------------------
+
+=========================
+9 - Taco Lengua
+=========================
+cogumelo, carne de boi, castanha do pará, tomate, cebola, limão
+
+------------------------------------------------
+
+=========================
+10 - Taco Vegano
+=========================
+abacate, tomate, pimenta jalapeno, coentro, cogumelo, salsa, cebola, nozes, nirá, gergilim
+
+------------------------------------------------
+
+=========================
+11 - Taco Portenho
+=========================
+abóbora, queijo, carne de boi, pimentão, cebola, salsa, alho, milho
+
+------------------------------------------------
+
+=========================
+12 - Quesadilla de Cogumelos
+=========================
+queijo, cogumelos, nirá
+
+------------------------------------------------
+
+=========================
+13 - Burrito
+=========================
+tortilla, trigo, carne de frango, queijo, feijão, tomate, cebola, limão, repolho, ovo, mostarda
+
+------------------------------------------------
+
+=========================
+14 - Chimichanga
+=========================
+tortilla, carne de boi, queijo, repolho, ovo, mostarda, feijão, tomate, cebola, limão, abacate
+
+------------------------------------------------
+
+=========================
+15 - Burrito Al Pastor
+=========================
+tortilla, trigo, carne de porco, abacaxi, queijo, feijão, tomate, cebola, limão, repolho

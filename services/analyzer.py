@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.model_selection import train_test_split
 
@@ -12,11 +12,11 @@ OUTPUT_DIR = "visualizations"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 ingredient_list = sorted([
-    "aperol", "espumante", "água com gás", "laranja", "rum", "limão", "hortelã",
-    "açúcar", "tequila", "licor de laranja", "leite de coco", "abacaxi", "vodka",
-    "licor de pêssego", "suco de laranja", "groselha", "gengibre", "vermouth",
-    "angostura", "gin", "tônica", "cranberry", "campari", "cola", "suco de tomate",
-    "molho inglês", "pimenta", "cachaça"
+    "abacate","abóbora","abacaxi","acelga","alho","canela","carne","carne de boi",
+    "carne de frango","carne de peixe","carne de porco","castanha do pará","cebola",
+    "ciboullete","cogumelo","cogumelos","coentro","couve-flor","feijão","gergilim",
+    "grão de bico","limão","milho","mostarda","nabo","nirá","nozes","ovo","picles",
+    "pimentão","pimenta jalapeno","queijo","repolho","salsa","tomate","tortilla","trigo"
 ])
 
 with open(DATA_FILE, "r", encoding="utf-8") as file:
@@ -27,16 +27,16 @@ labels = []
 
 for user in user_data:
     selected_ingredients = user["liked_ingredients"]
-    favorite_drink = user["most_liked_drink"]
+    favorite_recipe = user["most_liked_recipe"]
     ingredient_vector = [1 if ingredient in selected_ingredients else 0 for ingredient in ingredient_list]
     features.append(ingredient_vector)
-    labels.append(favorite_drink)
+    labels.append(favorite_recipe)
 
 features_train, features_test, labels_train, labels_test = train_test_split(
     features, labels, test_size=0.3, random_state=42
 )
 
-model = DecisionTreeClassifier(random_state=42)
+model = RandomForestClassifier(random_state=42)
 model.fit(features_train, labels_train)
 
 predictions = model.predict(features_test)
@@ -54,21 +54,14 @@ plt.savefig(os.path.join(OUTPUT_DIR, "confusion_matrix.png"))
 plt.close()
 print("Matriz de Confusão gerada com sucesso!")
 
-plt.figure(figsize=(20, 10))
-plot_tree(model, feature_names=ingredient_list, class_names=model.classes_, filled=True, max_depth=3)
-plt.title("Árvore de Decisão (Profundidade até 3)")
-plt.savefig(os.path.join(OUTPUT_DIR, "tree_visualization.png"))
-plt.close()
-print("Árvore de Decisão gerada com sucesso!")
-
-prediction_distribution = pd.DataFrame({"drink": predictions})
+prediction_distribution = pd.DataFrame({"recipe": predictions})
 plt.figure(figsize=(10, 6))
-sns.countplot(data=prediction_distribution, x="drink", order=prediction_distribution["drink"].value_counts().index)
+sns.countplot(data=prediction_distribution, x="recipe", order=prediction_distribution["recipe"].value_counts().index)
 plt.xticks(rotation=45)
-plt.title("Distribuição das Bebidas Recomendadas")
+plt.title("Distribuição das Receitas Recomendadas")
 plt.ylabel("Frequência")
 plt.tight_layout()
-plt.savefig(os.path.join(OUTPUT_DIR, "drink_distribution.png"))
+plt.savefig(os.path.join(OUTPUT_DIR, "recipe_distribution.png"))
 plt.close()
 print("Visualização da Distribuição dos Dados gerada com sucesso!")
 

@@ -94,7 +94,7 @@ O Swagger estará em:
 3. No campo "ingredientes", envie uma lista de ingredientes que você quer testar, como por exemplo:
 ```
 {
-  "ingredients": ["limão", "rum", "hortelã"]
+  "ingredients": ["limão", "pimenta jalapeno", "carne de boi"]
 }
 ```
 4. Clique em <strong>"Execute"</strong>
