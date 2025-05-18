@@ -1,4 +1,4 @@
-# Projeto de Recomendação de Receitas 🍸
+# Projeto de Recomendação de Receitas 
 
 Este é um projeto simples de recomendação de receitas utilizando **KNN** e **similaridade do cosseno**, feito em **Python** com o auxílio das bibliotecas `scikit-learn` e `numpy`. Além disso, contém também scripts de recomendação a partir da utilização dos modelos de **RandomForestClassifier** e **NaiveBayesClassifier**. 
 
