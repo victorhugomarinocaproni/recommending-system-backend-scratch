@@ -1,75 +1,48 @@
-import json
 import os
 import sys
-from sklearn.ensemble import RandomForestClassifier
+import pickle
+import numpy as np
 
-# =============================
-# Constantes: 
+def one_hot_encode_user_data(user_liked_ingredients, unique_ingredients):
+    return [1 if ingredient in user_liked_ingredients else 0 for ingredient in unique_ingredients]
 
-DATA_FILE_PATH = "data/generated_users.json"
+MODEL_FILE_PATH = "models/recipe_dt_classifier_model.pkl"
 
-# =============================
-# Funções:
+model = None
 
-def transform_ingredients_to_vector(preferred_ingredients):
-    return [1 if ingredient in preferred_ingredients else 0 for ingredient in unique_ingredients]
-
-def predict_favorite_recipe(preferred_ingredients):
-    vector = transform_ingredients_to_vector(preferred_ingredients)    
-    probabilities = model.predict_proba([vector])[0]
-    top_5_indexes = probabilities.argsort()[-5:][::-1]
-    top_5_recipes = [model.classes_[i] for i in top_5_indexes]
-    return top_5_recipes
-
-def one_hot_encode(ingredients, unique_ingredients):
-    return [1 if ingredient in ingredients else 0 for ingredient in unique_ingredients]
-
-# =============================
-# "Main" do script:
-
-if not os.path.exists(DATA_FILE_PATH):
-    print("Arquivo 'generated_users.json' não encontrado.")
-    print("Execute antes o script 'generate_users.py' para gerar os dados.")
+if not os.path.exists(MODEL_FILE_PATH):
+    print("Modelo 'recipe_dt_classifier_model.pkl' não encontrado.")
+    print("Execute antes o script 'decision_tree_classifier' para gerar e treinar o modelo.")
     sys.exit(1)
 
-with open(DATA_FILE_PATH, "r", encoding="utf-8") as dataset_file:
-    user_profiles = json.load(dataset_file)
+with open(MODEL_FILE_PATH, "rb") as model_file:
+    loaded_data = pickle.load(model_file)
     
-ingredients = set()
-
-for user in user_profiles:
-    ingredients.update(user["liked_ingredients"])
-        
-unique_ingredients = sorted(ingredients)
-
-feature_vectors = []
-target_labels = []
-
-for user in user_profiles:
-    user_features = one_hot_encode(user["liked_ingredients"], unique_ingredients)
-    feature_vectors.append(user_features)
-    target_labels.append(user["most_liked_recipe"])
-
-model = RandomForestClassifier(random_state=42)
-model.fit(feature_vectors, target_labels)
-
-# =============================
-# Executado apenas quando o script é chamado diretamente:
-
-if __name__ == "__main__":
+model = loaded_data["model"]
+unique_ingredients = loaded_data["unique_ingredients"]
     
-    example_user = [
-        "pimenta jalapeno",
-        "ovo",
-        "mostarda",
-        "limão",
-        "picles",
-        "cebola",
-        "coentro",
-        "abacaxi"
-      ]
+def predict_favorite_recipes(user_liked_ingredients):
+    if model is None:
+        raise ValueError("Modelo não carregado. Verifique o caminho do arquivo do modelo.")
     
-    suggestion = predict_favorite_recipe(example_user)
+    one_hot_encoded_user_tastes = one_hot_encode_user_data(user_liked_ingredients, unique_ingredients)
     
-    print(f"Para o usuário que gosta de {example_user}, recomendamos: {suggestion}")
+    probs = model.predict_proba([one_hot_encoded_user_tastes])[0]
+    
+    # Debug: veja as probabilidades e as classes
+    print("Probabilidades:", probs)
+    print("Classes:", model.classes_)
+    
+    top5_labels_index = np.argsort(-probs)[:5]
+    top5_probs = -np.sort(-probs)[:5]
+    top5_recipes = [model.classes_[i] for i in top5_labels_index]
+    
+    # Debug: veja as receitas e suas probabilidades
+    print("Top 5 receitas:", top5_recipes)
+    print("Probabilidades top 5:", probs[top5_labels_index])
+    
+    return [
+        {"recipe": recipe, "probability": float(prob)}
+        for recipe, prob in zip(top5_recipes, probs[top5_labels_index])
+    ]
     
