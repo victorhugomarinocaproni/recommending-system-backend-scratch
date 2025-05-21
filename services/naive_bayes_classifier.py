@@ -1,12 +1,14 @@
-import json
 import os
 import sys
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_validate
-from sklearn.model_selection import train_test_split
+import pandas as pd
+import json
+import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
-import pickle
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import cross_validate
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -68,9 +70,9 @@ def print_evaluation_metrics(y_tested, y_predicted):
     print("====================================")
 
 DATA_FILE_PATH = "data/generated_users.json"
-MODEL_FILE_PATH = "models/recipe_dt_classifier_model.pkl"
+MODEL_FILE_PATH = "models/naive_bayes_classifier.pkl"
 
-fake_users_profiles = None
+data = None
 
 if not os.path.exists(DATA_FILE_PATH):
     print("Arquivo 'generated_users.json' não encontrado.")
@@ -78,12 +80,14 @@ if not os.path.exists(DATA_FILE_PATH):
     sys.exit(1)
 
 with open(DATA_FILE_PATH, "r", encoding="utf-8") as dataset_file:
-    fake_users_profiles = json.load(dataset_file)
+    data = json.load(dataset_file)
+    
+df = pd.DataFrame(data)
     
 all_ingredients = set()
 
-for user in fake_users_profiles:
-    all_ingredients.update(user["liked_ingredients"])
+for liked_ingredients in df['liked_ingredients']:
+    all_ingredients.update(liked_ingredients)
     
 unique_ingredients = sorted(all_ingredients)
 
@@ -93,15 +97,17 @@ def one_hot_encode_fake_data(user_liked_ingredients, unique_ingredients):
 X = []
 y = []
 
-for user in fake_users_profiles:
-    X.append(one_hot_encode_fake_data(user["liked_ingredients"], unique_ingredients))
-    y.append(user["most_liked_recipe"])
+X = df['liked_ingredients'].apply(lambda ingredients: one_hot_encode_fake_data(ingredients, unique_ingredients)).tolist()
+y = df['most_liked_recipe'].tolist()
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
 )
+# mlb = MultiLabelBinarizer()
+#X = mlb.fit_transform(df['liked_ingredients'])
+#y = df['most_liked_recipe']
 
-model = RandomForestClassifier(random_state=42)
+model = MultinomialNB()
 
 cross_validation_results = cross_validate(
     model,
@@ -128,4 +134,4 @@ data_to_save = {
 with open(MODEL_FILE_PATH, "wb") as model_file:
     pickle.dump(data_to_save, model_file)
     
-print(f"Modelo DecisionTree e ingredientes únicos salvos com sucesso em '{MODEL_FILE_PATH}'!!!!")
+print(f"Modelo NaiveBayes e ingredientes únicos salvos com sucesso em '{MODEL_FILE_PATH}'!!!!")
