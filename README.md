@@ -1,8 +1,8 @@
-# Projeto de Recomendação de Drinks 🍸
+# Projeto de Recomendação de Receitas 
 
-Este é um projeto simples de recomendação de drinks utilizando **KNN** e **similaridade do cosseno**, feito em **Python** com o auxílio das bibliotecas `scikit-learn` e `numpy`.
+Este é um projeto simples de recomendação de receitas utilizando **KNN** e **similaridade do cosseno**, feito em **Python** com o auxílio das bibliotecas `scikit-learn` e `numpy`. Além disso, contém também scripts de recomendação a partir da utilização dos modelos de **RandomForestClassifier** e **NaiveBayesClassifier**. 
 
-O projeto analisa os ingredientes que o usuário gosta e recomenda drinks semelhantes, além de tentar classificar o tipo de drink favorito do usuário.
+O projeto analisa os ingredientes que o usuário gosta e recomenda receitas semelhantes, além de tentar classificar o tipo de receita favorita do usuário.
 
 ---
 
@@ -53,17 +53,29 @@ pip install -r requirements.txt
 ```
 
 ## 5. Execute o projeto
-* KNN com Recomendação de Drinks:
+* KNN para Recomendação de Receitas:
 ```
-python src/drink_knn_sklearn.py
+python service/knn_service.py
+```
+ou
+
+* DecisionTree para Recomendação de Receitas:
+```
+python service/decision_tree_service.py
+```
+ou
+
+* NaiveBayes para Recomendação de Receitas:
+```
+python service/naiveBayesClassifier.py
 ```
 ou 
 
 * Algoritmo para gerar os usuários fake (gerar um toy_dataset) 
 ```
-python src/toy_dataset.py
+python service/generate_users.py
 ```
-Para maior organização do projeto, ao rodar o script toy_dataset, um diretório '/data' será criado automaticamente, onde o arquivo JSON gerado será colocado. Caso o diretório já exista, apenas o arquivo JSON será sobrescrito. Cada vez que o script toy_dataset é rodado, um novo JSON é gerado, sempre sobrescrevendo o antigo!
+Para maior organização do projeto, ao rodar o script generate_users, um diretório '/data' será criado automaticamente, onde o arquivo JSON gerado será colocado. Caso o diretório já exista, apenas o arquivo JSON será sobrescrito. Cada vez que o script generate_users é rodado, um novo JSON é gerado, sempre sobrescrevendo o antigo!
 
 ## 6. Como fechar (desativar) o ambiente virtual
 Windows
@@ -98,4 +110,4 @@ O Swagger estará em:
 }
 ```
 4. Clique em <strong>"Execute"</strong>
-5. Você receberá como resposta uma Lista com as Top 3 mais Condizentes com seu gosto
+5. Você receberá como resposta uma Lista com as Top 5 Receitas mais condizentes com seu gosto
