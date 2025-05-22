@@ -6,6 +6,7 @@ import pickle
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import cross_validate
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -103,11 +104,19 @@ y = df['most_liked_recipe'].tolist()
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
 )
-# mlb = MultiLabelBinarizer()
-#X = mlb.fit_transform(df['liked_ingredients'])
-#y = df['most_liked_recipe']
+
+params = {
+    'alpha': [0.1, 0.5, 1.0, 2.0],
+    'fit_prior': [True, False]
+}
 
 model = MultinomialNB()
+
+gs = GridSearchCV(model, params, cv=5, scoring='f1_macro', n_jobs=-1)
+
+gs.fit(X_train, y_train)
+
+model = gs.best_estimator_
 
 cross_validation_results = cross_validate(
     model,
@@ -118,7 +127,6 @@ cross_validation_results = cross_validate(
     return_train_score=True
 )
 
-model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
 print_cross_validation_results(cross_validation_results)

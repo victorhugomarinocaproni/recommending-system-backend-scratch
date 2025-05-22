@@ -33,16 +33,16 @@ def predict_favorite_recipes(user_liked_ingredients):
     print("Probabilidades:", probs)
     print("Classes:", model.classes_)
     
-    top5_labels_index = np.argsort(-probs)[:5]
-    top5_probs = -np.sort(-probs)[:5]
-    top5_recipes = [model.classes_[i] for i in top5_labels_index]
+    top3_labels_index = np.argsort(-probs)[:3]
+    top3_probs = -np.sort(-probs)[:3]
+    top3_recipes = [model.classes_[i] for i in top3_labels_index]
     
     # Debug: veja as receitas e suas probabilidades
-    print("Top 5 receitas:", top5_recipes)
-    print("Probabilidades top 5:", probs[top5_labels_index])
+    print("Top 3 receitas:", top3_recipes)
+    print("Probabilidades top 3:", probs[top3_labels_index])
     
     return [
         {"recipe": recipe, "probability": float(prob)}
-        for recipe, prob in zip(top5_recipes, probs[top5_labels_index])
+        for recipe, prob in zip(top3_recipes, probs[top3_labels_index])
     ]
     

@@ -149,9 +149,9 @@ def recommend_drinks_dt():
         if not ingredients:
             return jsonify({"error": "Parâmetro 'ingredients' é obrigatório e deve ser uma lista de strings."}), 400
         
-        top_5_recipes = predict_favorite_recipes(ingredients)
+        top_3_recipes = predict_favorite_recipes(ingredients)
                 
-        return jsonify({"recommendations": top_5_recipes}), 200
+        return jsonify({"recommendations": top_3_recipes}), 200
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
