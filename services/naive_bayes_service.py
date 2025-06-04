@@ -3,6 +3,25 @@ import sys
 import pickle
 import numpy as np
 
+recipes = {
+    "Quesadilla de Barbacoa": ["carne de boi", "queijo", "ovo", "mostarda", "pimenta jalapeno", "nirá"],
+    "Taco Pescado Baja": ["carne de peixe", "repolho", "abacate", "tomate", "pimenta jalapeno", "ovo", "mostarda", "limão", "picles", "cebola", "coentro"],
+    "Taco Camarão": ["camarão", "repolho", "ovo", "mostarda", "abacate", "tomate", "pimenta jalapeno", "coentro", "picles"],
+    "Taco Barbacoa": ["carne de boi", "queijo", "cebola", "ciboullete", "coentro", "picles", "pimenta jalapeno"],
+    "Gringa Coreana": ["tortilla", "milho", "queijo", "carne de porco", "acelga", "nabo", "picles", "limão", "cebola"],
+    "Taco Birria": ["carne de boi", "queijo", "cebola", "coentro", "pimenta jalapeno", "carne"],
+    "Taco La Flor": ["couve-flor", "feijão", "grão de bico", "ciboullete"],
+    "Taco de Chorizo": ["carne de porco", "queijo", "coentro", "tomate", "cebola", "limão"],
+    "Taco Al Pastor": ["abóbora", "alho", "carne de porco", "abacaxi", "canela", "salsa", "cebola", "coentro"],
+    "Taco Lengua": ["cogumelo", "carne de boi", "castanha do pará", "tomate", "cebola", "limão"],
+    "Taco Vegano": ["abacate", "tomate", "pimenta jalapeno", "coentro", "cogumelo", "salsa", "cebola", "nozes", "nirá", "gergilim"],
+    "Taco Portenho": ["abóbora", "queijo", "carne de boi", "pimentão", "cebola", "salsa", "alho", "milho"],
+    "Quesadilla de Cogumelos": ["queijo", "cogumelos", "nirá"],
+    "Burrito": ["tortilla", "trigo", "carne de frango", "queijo", "feijão", "tomate", "cebola", "limão", "repolho", "ovo", "mostarda"],
+    "Chimichanga": ["tortilla", "carne de boi", "queijo", "repolho", "ovo", "mostarda", "feijão", "tomate", "cebola", "limão", "abacate"],
+    "Burrito Al Pastor": ["tortilla", "trigo", "carne de porco", "abacaxi", "queijo", "feijão", "tomate", "cebola", "limão", "repolho"]
+}
+
 def one_hot_encode_user_data(user_liked_ingredients, unique_ingredients):
     return [1 if ingredient in user_liked_ingredients else 0 for ingredient in unique_ingredients]
 
@@ -29,20 +48,18 @@ def predict_favorite_recipes_naive_bayes(user_liked_ingredients):
     
     probs = model.predict_proba([one_hot_encoded_user_tastes])[0]
     
-    # Debug: classes
-    print("Probabilidades:", probs)
-    print("Classes:", model.classes_)
-    
     top3_labels_index = np.argsort(-probs)[:3]
     top3_probs = -np.sort(-probs)[:3]
     top3_recipes = [model.classes_[i] for i in top3_labels_index]
-    
-    # Debug: probabilidades
-    print("Top 3 receitas:", top3_recipes)
-    print("Probabilidades top 3:", probs[top3_labels_index])
-    
-    return [
-        {"recipe": recipe, "probability": float(prob)}
-        for recipe, prob in zip(top3_recipes, probs[top3_labels_index])
-    ]
+
+    result = []
+    for recipe_name, score in zip(top3_recipes, top3_probs):
+        ingredients = recipes.get(recipe_name, [])
+        result.append({
+            "name": recipe_name,
+            "ingredients": ingredients,
+            "score": float(score),
+            "instructions": ""
+        })
+    return result
     

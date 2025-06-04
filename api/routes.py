@@ -66,7 +66,7 @@ def recommend_drinks_knn():
         data = request.get_json()
         ingredients = data.get('ingredients', [])
     
-        if not ingredients:
+        if not data or 'ingredients' not in data:
             return jsonify({"error": "Parâmetro 'ingredients' é obrigatório e deve ser uma lista de strings."}), 400
 
         user_profile = get_user_profile_one_hot_encoded(ingredients)

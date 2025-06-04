@@ -1,10 +1,12 @@
 from flask import Flask
 from flasgger import Swagger
 from api.routes import api_blueprint
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
-    
+    CORS(app)
+
     swagger_config = {
         "headers": [],
         "specs": [
