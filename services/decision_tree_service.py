@@ -21,7 +21,7 @@ with open(MODEL_FILE_PATH, "rb") as model_file:
 model = loaded_data["model"]
 unique_ingredients = loaded_data["unique_ingredients"]
     
-def predict_favorite_recipes(user_liked_ingredients):
+def predict_favorite_recipes_random_forest(user_liked_ingredients):
     if model is None:
         raise ValueError("Modelo não carregado. Verifique o caminho do arquivo do modelo.")
     

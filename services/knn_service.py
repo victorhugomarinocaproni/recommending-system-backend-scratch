@@ -155,7 +155,7 @@ plt.tight_layout()
 plt.savefig("analyses/matriz_similaridade_cosine.png")
 plt.show()
 
-def recommend_top_5_foods_knn(user_profile):
+def recommend_top_3_foods_knn(user_profile):
     # Normalizar o perfil do usuário
     user_profile_normalized = scaler.transform([user_profile])
 

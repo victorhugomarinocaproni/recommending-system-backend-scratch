@@ -23,8 +23,8 @@ def create_app():
     swagger_template = {
         "swagger": "2.0",
         "info": {
-            "title": "API de Recomendação de Bebidas",
-            "description": "API para recomendação de bebidas baseada em preferências de ingredientes",
+            "title": "API de Recomendação de Receitas",
+            "description": "API para recomendação de receitas baseada em preferências de ingredientes",
             "version": "1.0.0"
         },
         "basePath": "/api",
@@ -46,8 +46,7 @@ def create_app():
     @app.route('/')
     def index():
         return """
-        <h1>API de Recomendação de Bebidas</h1>
-        <p>Acesse a documentação da API em <a href="/docs">/docs</a></p>
+        <h1>API de Recomendação de Receitas</h1>
         """
     
     return app

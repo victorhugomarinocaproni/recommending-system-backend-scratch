@@ -21,3 +21,6 @@ __pycache__/
 
 # Ignore models directory
 /models/
+
+# Ignore analyses directory
+/analyses/

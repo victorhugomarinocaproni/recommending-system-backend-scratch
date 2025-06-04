@@ -123,7 +123,7 @@ cross_validation_results = cross_validate(
     X_train,
     y_train,
     cv=5,
-    scoring=['accuracy', 'precision_macro', 'recall_macro', 'f1_macro'],
+    scoring=['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'],
     return_train_score=True
 )
 
