@@ -22,24 +22,24 @@ def print_cross_validation_results(results):
     print("===== Resultados da Validação Cruzada Por Fold =====")
     print()
     print("Acurácia :", results['test_accuracy'])
-    print("Precisão :", results['test_precision_macro'])
-    print("Revocação :", results['test_recall_macro'])
-    print("F1 :", results['test_f1_macro'])
+    print("Precisão :", results['test_precision_weighted'])
+    print("Revocação :", results['test_recall_weighted'])
+    print("F1 :", results['test_f1_weighted'])
     print("Acurácia (treinamento):", results['train_accuracy'])
-    print("Precisão (treinamento):", results['train_precision_macro'])
-    print("Revocação (treinamento):", results['train_recall_macro'])
-    print("F1 (treinamento):", results['train_f1_macro'])
+    print("Precisão (treinamento):", results['train_precision_weighted'])
+    print("Revocação (treinamento):", results['train_recall_weighted'])
+    print("F1 (treinamento):", results['train_f1_weighted'])
     print()
     print("===== Resultados da Validação Cruzada Média =====")
     print()
     print("Acurácia média:", results['test_accuracy'].mean())
-    print("Precisão média:", results['test_precision_macro'].mean())
-    print("Revocação média:", results['test_recall_macro'].mean())
-    print("F1 média:", results['test_f1_macro'].mean())
+    print("Precisão média:", results['test_precision_weighted'].mean())
+    print("Revocação média:", results['test_recall_weighted'].mean())
+    print("F1 média:", results['test_f1_weighted'].mean())
     print("Acurácia média (treinamento):", results['train_accuracy'].mean())
-    print("Precisão média (treinamento):", results['train_precision_macro'].mean())
-    print("Revocação média (treinamento):", results['train_recall_macro'].mean())
-    print("F1 média (treinamento):", results['train_f1_macro'].mean())
+    print("Precisão média (treinamento):", results['train_precision_weighted'].mean())
+    print("Revocação média (treinamento):", results['train_recall_weighted'].mean())
+    print("F1 média (treinamento):", results['train_f1_weighted'].mean())
     print()
     print("====================================")
     print()
@@ -51,9 +51,9 @@ def print_evaluation_metrics(y_tested, y_predicted):
     print("==== MÉTRICAS DE AVALIAÇÃO APÓS TREINAMENTO E PREDIÇÃO DO MODELO ====")
     print()
     print(f"Acurácia: {accuracy_score(y_tested, y_predicted):.2f}")
-    print(f"Precisão macro: {precision_score(y_tested, y_predicted, average='macro'):.2f}")
-    print(f"Recall macro: {recall_score(y_tested, y_predicted, average='macro'):.2f}")
-    print(f"F1 Score macro: {f1_score(y_tested, y_predicted, average='macro'):.2f}")
+    print(f"Precisão weighted: {precision_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print(f"Recall weighted: {recall_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print(f"F1 Score weighted: {f1_score(y_tested, y_predicted, average='weighted'):.2f}")
     print()
     print("Matriz de Confusão: ")
     print(confusion_matrix_result)
@@ -102,13 +102,13 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=42
 )
 
-params = {
-    "n_estimators": [25, 50, 100]
+grid_params = {
+    "n_estimators": [25, 50, 100, 115]
 }
 
 model = RandomForestClassifier(random_state=42)
 
-gs = GridSearchCV(model, params, cv=5, scoring='f1_macro', n_jobs=-1)
+gs = GridSearchCV(model, grid_params, cv=5, scoring='precision_weighted', n_jobs=-1)
 
 gs.fit(X_train, y_train)
 
@@ -119,7 +119,7 @@ cross_validation_results = cross_validate(
     X_train,
     y_train,
     cv=5,
-    scoring=['accuracy', 'precision_macro', 'recall_macro', 'f1_macro'],
+    scoring=['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'],
     return_train_score=True
 )
 

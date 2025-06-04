@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flasgger import swag_from
-from services.knn_service import recommend_top_5_foods_knn, get_user_profile
+from services.knn_service import recommend_top_5_foods_knn, get_user_profile_one_hot_encoded
 
 
 from services.decision_tree_service import predict_favorite_recipes
@@ -70,7 +70,7 @@ def recommend_drinks_knn():
         if not ingredients:
             return jsonify({"error": "Parâmetro 'ingredients' é obrigatório e deve ser uma lista de strings."}), 400
 
-        user_profile = get_user_profile(ingredients)
+        user_profile = get_user_profile_one_hot_encoded(ingredients)
         
         top_3_drinks = recommend_top_5_foods_knn(user_profile)
         
