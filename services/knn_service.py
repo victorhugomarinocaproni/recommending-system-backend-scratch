@@ -1,160 +1,173 @@
-from sklearn.neighbors import NearestNeighbors
-from pprint import pprint
+import os
+import json
+import sys
+import pickle
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.preprocessing import Normalizer
-import os
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import cross_validate
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+    classification_report
+)
+
+def print_cross_validation_results(results):
+    print()
+    print("===== Resultados da Validação Cruzada Por Fold =====")
+    print()
+    print("Acurácia :", results['test_accuracy'])
+    print("Precisão :", results['test_precision_weighted'])
+    print("Revocação :", results['test_recall_weighted'])
+    print("F1 :", results['test_f1_weighted'])
+    print()
+    print("===== Resultados da Validação Cruzada Média =====")
+    print()
+    print("Acurácia média:", results['test_accuracy'].mean())
+    print("Precisão média:", results['test_precision_weighted'].mean())
+    print("Revocação média:", results['test_recall_weighted'].mean())
+    print("F1 média:", results['test_f1_weighted'].mean())
+    print()
+    print("====================================")
+    print()
+def print_evaluation_metrics(y_tested, y_predicted):
+    
+    confusion_matrix_result = confusion_matrix(y_tested, y_predicted)
+    
+    print("==== MÉTRICAS DE AVALIAÇÃO APÓS TREINAMENTO E PREDIÇÃO DO MODELO ====")
+    print()
+    print(f"Acurácia: {accuracy_score(y_tested, y_predicted):.2f}")
+    print(f"Precisão weighted: {precision_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print(f"Recall weighted: {recall_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print(f"F1 Score weighted: {f1_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print()
+    print("Matriz de Confusão: ")
+    print(confusion_matrix_result)
+    sns.heatmap(confusion_matrix_result, annot=True, fmt='d', cmap='Blues')
+    plt.title("Matriz de Confusão")
+    plt.xlabel("Predito")
+    plt.ylabel("Real")
+    plt.show()
+    print()
+    print("Relatório de Classificação: ")
+    print(classification_report(y_tested, y_predicted, zero_division=0))
+    print()
+    print("====================================")
 
 # =======================
 # Constantes: 
-
-KNN_VALUE = 3
-KNN_METRIC = "cosine" 
-KNN_WEIGHT = "uniform" # -> Não existe para NearestNeighbors, apenas para KNeighborsClassifier ou KNeighborsRegressor
-PCA_N_COMPONENTS = 3
+# =======================
+PCA_N_COMPONENTS = 0.95
 ANALYSES_DIR = "analyses"
+DATA_FILE_PATH = "data/generated_users.json"
+MODEL_FILE_PATH = "models/knn_classifier_model.pkl"
 
-recipes = {
-    "Quesadilla de Barbacoa": ["carne de boi", "queijo", "ovo", "mostarda", "pimenta jalapeno", "nirá"],
-    "Taco Pescado Baja": ["carne de peixe", "repolho", "abacate", "tomate", "pimenta jalapeno", "ovo", "mostarda", "limão", "picles", "cebola", "coentro"],
-    "Taco Camarão": ["camarão", "repolho", "ovo", "mostarda", "abacate", "tomate", "pimenta jalapeno", "coentro", "picles"],
-    "Taco Barbacoa": ["carne de boi", "queijo", "cebola", "ciboullete", "coentro", "picles", "pimenta jalapeno"],
-    "Gringa Coreana": ["tortilla", "milho", "queijo", "carne de porco", "acelga", "nabo", "picles", "limão", "cebola"],
-    "Taco Birria": ["carne de boi", "queijo", "cebola", "coentro", "pimenta jalapeno", "carne"],
-    "Taco La Flor": ["couve-flor", "feijão", "grão de bico", "ciboullete"],
-    "Taco de Chorizo": ["carne de porco", "queijo", "coentro", "tomate", "cebola", "limão"],
-    "Taco Al Pastor": ["abóbora", "alho", "carne de porco", "abacaxi", "canela", "salsa", "cebola", "coentro"],
-    "Taco Lengua": ["cogumelo", "carne de boi", "castanha do pará", "tomate", "cebola", "limão"],
-    "Taco Vegano": ["abacate", "tomate", "pimenta jalapeno", "coentro", "cogumelo", "salsa", "cebola", "nozes", "nirá", "gergilim"],
-    "Taco Portenho": ["abóbora", "queijo", "carne de boi", "pimentão", "cebola", "salsa", "alho", "milho"],
-    "Quesadilla de Cogumelos": ["queijo", "cogumelos", "nirá"],
-    "Burrito": ["tortilla", "trigo", "carne de frango", "queijo", "feijão", "tomate", "cebola", "limão", "repolho", "ovo", "mostarda"],
-    "Chimichanga": ["tortilla", "carne de boi", "queijo", "repolho", "ovo", "mostarda", "feijão", "tomate", "cebola", "limão", "abacate"],
-    "Burrito Al Pastor": ["tortilla", "trigo", "carne de porco", "abacaxi", "queijo", "feijão", "tomate", "cebola", "limão", "repolho"]
-}
+fake_users_profiles = None
 
-ingredient_set = set()
-for ingredients in recipes.values():
-    ingredient_set.update(ingredients)
+if not os.path.exists(DATA_FILE_PATH):
+    print("Arquivo 'generated_users.json' não encontrado.")
+    print("Execute antes o script generate_users.py para gerar os dados.")
+    sys.exit(1)
+
+with open(DATA_FILE_PATH, "r", encoding="utf-8") as dataset_file:
+    fake_users_profiles = json.load(dataset_file)
     
-unique_ingredients = sorted(list(ingredient_set))
+all_ingredients = set()
 
-def one_hot_encode_vector(recipe_ingredients, ingredients_list):
-    return [1 if ingredient in recipe_ingredients else 0 for ingredient in ingredients_list]
+for user in fake_users_profiles:
+    all_ingredients.update(user["liked_ingredients"])
+    
+unique_ingredients = sorted(all_ingredients)
+
+def one_hot_encode_fake_data(user_liked_ingredients, unique_ingredients):
+    return [1 if ingredient in user_liked_ingredients else 0 for ingredient in unique_ingredients]
 
 X = []
 y = []
 
-for name, ingredients in recipes.items():
-    X.append(one_hot_encode_vector(ingredients, unique_ingredients))
-    y.append(name)
-    
-# Normalizar 
-scaler = Normalizer()  
-X_scaled = scaler.fit_transform(X)
-    
-# Aplicar o PCA
-pca = PCA(n_components=PCA_N_COMPONENTS)
-X_pca = pca.fit_transform(X_scaled)
+for user in fake_users_profiles:
+    X.append(one_hot_encode_fake_data(user["liked_ingredients"], unique_ingredients))
+    y.append(user["most_liked_recipe"])
 
-def get_user_profile_one_hot_encoded(user_desired_ingredients):
-    for ingredient in user_desired_ingredients:
-        if ingredient not in unique_ingredients:
-            print(f"Ingrediente inválido: {ingredient}. Ingredientes válidos: " + ", ".join(unique_ingredients))
-            raise ValueError(f"Ingrediente inválido: {ingredient}. Ingredientes válidos: " + ", ".join(unique_ingredients))
-    return one_hot_encode_vector(user_desired_ingredients, unique_ingredients)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
 
-# Coletando melhores parâmetros para o modelo KNN
 grid_params = {
     "n_neighbors": [3, 5, 7, 9, 11, 13, 15],
     "metric": ['cosine', 'euclidean', 'manhattan'],
-    "weights": ['uniform', 'distance']
+    "weights": ['uniform', 'distance'],
 }
 
-knn_model = KNeighborsClassifier()
+model = KNeighborsClassifier()
 
-best_score = -1
-best_params = None
-results = []
+gs = GridSearchCV(model, grid_params, cv=5, scoring='precision_weighted', n_jobs=-1)
+gs.fit(X_train, y_train)
 
-for n_neighbors in grid_params["n_neighbors"]:
-    for metric in grid_params["metric"]:
-        for weight in grid_params["weights"]:
-            model = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
-            model.fit(X_pca, y)
-            score = model.score(X_pca, y)
-            # print(f"Parâmetros: n_neighbors={n_neighbors}, metric={metric}, weights={weight}, Score: {score:.4f}")
-            results.append((n_neighbors, metric, weight, score))
-            if score > best_score:
-                best_score = score
-                best_params = {"n_neighbors": n_neighbors, "metric": metric, "weights": weight}
-                
+print("Melhores parâmetros: ", gs.best_params_)
 
-print("Melhores parâmetros encontrados para KNN: ", best_params)
+model = gs.best_estimator_
+
+cross_validation_results = cross_validate(
+    model,
+    X_train,
+    y_train,
+    cv=5,
+    scoring=['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'],
+    return_train_score=True
+)
+
+y_pred = model.predict(X_test)
+
+print_cross_validation_results(cross_validation_results)
+print_evaluation_metrics(y_test, y_pred)
 
 # ==============================
 # Plotagem dos Dados
 # ==============================
+scores = []
+k_values = [3, 5, 7, 9, 11, 13, 15]
+for k in k_values:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+    
+    score = accuracy_score(y_test, y_pred)  # Ou f1_score(...), etc
+    scores.append(score)
 
-# Plotagem dos resultados do KNN
-df = pd.DataFrame(results, columns=["n_neighbors", "metric", "weights", "score"])
 
 os.makedirs("analyses", exist_ok=True)
 
-plt.figure(figsize=(10,6))
-sns.lineplot(data=df, x="n_neighbors", y="score", hue="metric", style="weights", markers=True)
-plt.title("Comparação de Score por Número de Vizinhos (KNN)")
-plt.xlabel("Número de Vizinhos (n_neighbors)")
-plt.ylabel("Score de Acurácia (Treino)")
-plt.legend(title="Métrica / Peso")
+plt.figure(figsize=(10, 6))
+plt.plot(k_values, scores, marker='o', linestyle='-', color='b')
+plt.title('Acurácia vs Valor de K no KNN')
+plt.xlabel('Número de Vizinhos (K)')
+plt.ylabel('Acurácia')
+plt.xticks(k_values)
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("analyses/knn_scores.png")
+plt.savefig("analyses/knn_accuracy_vs_k.png")
 plt.show()
 
-# Análise de PCA
-plt.figure(figsize=(8,5))
-plt.plot(range(1, len(pca.explained_variance_ratio_)+1), 
-         pca.explained_variance_ratio_.cumsum(), marker='o')
-plt.title("Variância Explicada Acumulada por PCA")
-plt.xlabel("Número de Componentes")
-plt.ylabel("Variância Explicada Acumulada")
-plt.axhline(y=0.95, color='r', linestyle='--', label="95% de Variância")
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-plt.savefig("analyses/pca_variancia_explicada.png")
-plt.show()
+os.makedirs("models", exist_ok=True)
 
-# Plotagem 3D dos dados PCA
-fig = plt.figure(figsize=(10,7))
-ax = fig.add_subplot(111, projection='3d')
+data_to_save = {
+    "model": model,
+    "unique_ingredients": unique_ingredients
+}
 
-for i, label in enumerate(y):
-    ax.scatter(X_pca[i, 0], X_pca[i, 1], X_pca[i, 2], label=label)
+with open(MODEL_FILE_PATH, "wb") as model_file:
+    pickle.dump(data_to_save, model_file)
+    
+print(f"Modelo KNNClassifier e ingredientes únicos salvos com sucesso em '{MODEL_FILE_PATH}'!!!!")
 
-ax.set_xlabel("PC1")
-ax.set_ylabel("PC2")
-ax.set_zlabel("PC3")
-plt.title("Receitas no Espaço PCA (3 Componentes)")
-plt.tight_layout()
-plt.savefig("analyses/receitas_pca_3d.png")
-plt.show()
-
-# Matriz de Similaridade Cosine
-similarity_matrix = cosine_similarity(X)
-plt.figure(figsize=(12,10))
-sns.heatmap(similarity_matrix, xticklabels=y, yticklabels=y, cmap="YlGnBu", annot=False)
-plt.title("Matriz de Similaridade entre Receitas (Cosine)")
-plt.xticks(rotation=90)
-plt.tight_layout()
-plt.savefig("analyses/matriz_similaridade_cosine.png")
-plt.show()
-
+"""
 def recommend_top_3_foods_knn(user_profile):
     # Normalizar o perfil do usuário
     user_profile_normalized = scaler.transform([user_profile])
@@ -182,11 +195,5 @@ def recommend_top_3_foods_knn(user_profile):
         })
     
     return result
+""" 
 
-# Execução de teste
-if __name__ == "__main__":
-    user_likes = ["carne de boi", "queijo", "cebola"]
-    user_profile = get_user_profile_one_hot_encoded(user_likes)
-    recommendations = recommend_top_5_foods_knn(user_profile)
-    
-    pprint(recommendations)
