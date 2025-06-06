@@ -17,6 +17,9 @@ from sklearn.metrics import (
     confusion_matrix,
     classification_report
 )
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder 
 
 def print_cross_validation_results(results):
     print()
@@ -36,27 +39,29 @@ def print_cross_validation_results(results):
     print()
     print("====================================")
     print()
-def print_evaluation_metrics(y_tested, y_predicted):
-    
+
+def print_evaluation_metrics(y_tested, y_predicted, label_encoder_obj=None):
     confusion_matrix_result = confusion_matrix(y_tested, y_predicted)
     
     print("==== MÉTRICAS DE AVALIAÇÃO APÓS TREINAMENTO E PREDIÇÃO DO MODELO ====")
     print()
     print(f"Acurácia: {accuracy_score(y_tested, y_predicted):.2f}")
-    print(f"Precisão weighted: {precision_score(y_tested, y_predicted, average='weighted'):.2f}")
-    print(f"Recall weighted: {recall_score(y_tested, y_predicted, average='weighted'):.2f}")
-    print(f"F1 Score weighted: {f1_score(y_tested, y_predicted, average='weighted'):.2f}")
+    print(f"Precisão weighted: {precision_score(y_tested, y_predicted, average='weighted', zero_division=0):.2f}")
+    print(f"Recall weighted: {recall_score(y_tested, y_predicted, average='weighted', zero_division=0):.2f}")
+    print(f"F1 Score weighted: {f1_score(y_tested, y_predicted, average='weighted', zero_division=0):.2f}")
     print()
     print("Matriz de Confusão: ")
     print(confusion_matrix_result)
-    sns.heatmap(confusion_matrix_result, annot=True, fmt='d', cmap='Blues')
+    
+    class_names = label_encoder_obj.classes_ if label_encoder_obj else None
+    sns.heatmap(confusion_matrix_result, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
     plt.title("Matriz de Confusão")
     plt.xlabel("Predito")
     plt.ylabel("Real")
     plt.show()
     print()
     print("Relatório de Classificação: ")
-    print(classification_report(y_tested, y_predicted, zero_division=0))
+    print(classification_report(y_tested, y_predicted, zero_division=0, target_names=class_names))
     print()
     print("====================================")
 
@@ -89,15 +94,48 @@ def one_hot_encode_fake_data(user_liked_ingredients, unique_ingredients):
     return [1 if ingredient in user_liked_ingredients else 0 for ingredient in unique_ingredients]
 
 X = []
-y = []
+y_raw = [] 
 
 for user in fake_users_profiles:
     X.append(one_hot_encode_fake_data(user["liked_ingredients"], unique_ingredients))
-    y.append(user["most_liked_recipe"])
+    y_raw.append(user["most_liked_recipe"])
+
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y_raw) 
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=42
+    X, y_encoded, test_size=0.3, random_state=42 
 )
+
+X_train_np = pd.DataFrame(X_train).values
+X_test_np = pd.DataFrame(X_test).values
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train_np)
+X_test_scaled = scaler.transform(X_test_np)
+
+pca = PCA(n_components=PCA_N_COMPONENTS)
+
+X_train_pca = pca.fit_transform(X_train_scaled)
+X_test_pca = pca.transform(X_test_scaled)
+
+print(f"\nNúmero original de features: {X_train_scaled.shape[1]}")
+print(f"Número de componentes PCA selecionados para {PCA_N_COMPONENTS*100}% de variância: {pca.n_components_}")
+
+os.makedirs(ANALYSES_DIR, exist_ok=True)
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, len(pca.explained_variance_ratio_) + 1), pca.explained_variance_ratio_.cumsum(), marker='o', linestyle='--')
+plt.title('Variância Explicada Acumulada por Componentes Principais')
+plt.xlabel('Número de Componentes Principais')
+plt.ylabel('Variância Explicada Acumulada')
+plt.grid(True)
+plt.axhline(y=PCA_N_COMPONENTS, color='r', linestyle='-', label=f'{PCA_N_COMPONENTS*100}% de Variância')
+plt.axvline(x=pca.n_components_, color='g', linestyle='--', label=f'{pca.n_components_} Componentes para {PCA_N_COMPONENTS*100}%')
+plt.legend()
+plt.tight_layout()
+plt.savefig(os.path.join(ANALYSES_DIR, "pca_explained_variance.png"))
+plt.show()
+
 
 grid_params = {
     "n_neighbors": [3, 5, 7, 9, 11, 13, 15],
@@ -107,93 +145,84 @@ grid_params = {
 
 model = KNeighborsClassifier()
 
-gs = GridSearchCV(model, grid_params, cv=5, scoring='precision_weighted', n_jobs=-1)
-gs.fit(X_train, y_train)
+gs = GridSearchCV(model, grid_params, cv=5, scoring='precision_weighted', n_jobs=-1, return_train_score=True) 
+gs.fit(X_train_pca, y_train)
 
-print("Melhores parâmetros: ", gs.best_params_)
+print("Melhores parâmetros (com PCA): ", gs.best_params_)
 
 model = gs.best_estimator_
 
 cross_validation_results = cross_validate(
     model,
-    X_train,
+    X_train_pca,
     y_train,
     cv=5,
     scoring=['accuracy', 'precision_weighted', 'recall_weighted', 'f1_weighted'],
-    return_train_score=True
+    return_train_score=True,
+    error_score='raise'
 )
 
-y_pred = model.predict(X_test)
+y_pred = model.predict(X_test_pca)
 
 print_cross_validation_results(cross_validation_results)
-print_evaluation_metrics(y_test, y_pred)
+print_evaluation_metrics(y_test, y_pred, label_encoder)
 
 # ==============================
-# Plotagem dos Dados
+# PLOTAGEM DE ACURÁCIA DE TREINO POR N_NEIGHBORS, METRIC E WEIGHTS
 # ==============================
-scores = []
+
 k_values = [3, 5, 7, 9, 11, 13, 15]
-for k in k_values:
-    knn = KNeighborsClassifier(n_neighbors=k)
-    knn.fit(X_train, y_train)
-    y_pred = knn.predict(X_test)
-    
-    score = accuracy_score(y_test, y_pred)  # Ou f1_score(...), etc
-    scores.append(score)
+results_df = pd.DataFrame(gs.cv_results_)
 
+plot_df = results_df[[
+    'param_n_neighbors',
+    'param_metric',
+    'param_weights',
+    'mean_test_score' 
+]].copy()
 
-os.makedirs("analyses", exist_ok=True)
+plot_df.rename(columns={
+    'param_n_neighbors': 'Número de Vizinhos (n_neighbors)',
+    'param_metric': 'Métrica',
+    'param_weights': 'Peso',
+    'mean_test_score': 'Score de Precisão (Treino)'
+}, inplace=True)
 
-plt.figure(figsize=(10, 6))
-plt.plot(k_values, scores, marker='o', linestyle='-', color='b')
-plt.title('Acurácia vs Valor de K no KNN')
-plt.xlabel('Número de Vizinhos (K)')
-plt.ylabel('Acurácia')
+plot_df['Número de Vizinhos (n_neighbors)'] = pd.to_numeric(plot_df['Número de Vizinhos (n_neighbors)'])
+
+plt.figure(figsize=(12, 8))
+sns.lineplot(
+    data=plot_df,
+    x='Número de Vizinhos (n_neighbors)',
+    y='Score de Precisão (Treino)',
+    hue='Métrica',
+    style='Peso',
+    markers=True,
+    dashes=False,
+    palette='deep'
+)
+
+plt.title('Comparação de Acurácia de Treino por N. Vizinhos, Métrica e Peso (com PCA)')
+plt.xlabel('Número de Vizinhos (n_neighbors)')
+plt.ylabel('Score de Acurácia (Treino)')
 plt.xticks(k_values)
 plt.grid(True)
+plt.legend(title='Parâmetros', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
-plt.savefig("analyses/knn_accuracy_vs_k.png")
+plt.savefig(os.path.join(ANALYSES_DIR, "knn_train_accuracy_comparison_pca.png"))
 plt.show()
 
 os.makedirs("models", exist_ok=True)
 
 data_to_save = {
     "model": model,
-    "unique_ingredients": unique_ingredients
+    "unique_ingredients": unique_ingredients,
+    "pca": pca,
+    "scaler": scaler,
+    "label_encoder": label_encoder 
 }
 
 with open(MODEL_FILE_PATH, "wb") as model_file:
     pickle.dump(data_to_save, model_file)
     
-print(f"Modelo KNNClassifier e ingredientes únicos salvos com sucesso em '{MODEL_FILE_PATH}'!!!!")
-
-"""
-def recommend_top_3_foods_knn(user_profile):
-    # Normalizar o perfil do usuário
-    user_profile_normalized = scaler.transform([user_profile])
-
-    # Aplicar PCA no perfil do usuário
-    user_profile_pca = pca.transform(user_profile_normalized)
-
-    # Faz o 'fit' do modelo KNN com os dados PCA
-    knn_recommender = NearestNeighbors(n_neighbors=KNN_VALUE, metric=KNN_METRIC)
-    knn_recommender.fit(X_pca) 
-
-    distances, indices = knn_recommender.kneighbors(user_profile_pca)
-    
-    result = []
-    for idx, i in enumerate(indices[0]):
-        recipe_name = y[i]
-        ingredients = recipes[recipe_name]
-        similarity_score = 1 - distances[0][idx]
-
-        result.append({
-            "name": recipe_name,
-            "ingredients": ingredients,
-            "score": round(similarity_score, 2),
-            "instructions": ""
-        })
-    
-    return result
-""" 
-
+print(f"Modelo KNNClassifier, PCA, scaler, label encoder e ingredientes únicos salvos com sucesso em '{MODEL_FILE_PATH}'!!!!")
