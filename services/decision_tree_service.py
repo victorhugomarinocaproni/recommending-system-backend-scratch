@@ -28,6 +28,8 @@ def one_hot_encode_user_data(user_liked_ingredients, unique_ingredients):
 MODEL_FILE_PATH = "models/recipe_dt_classifier_model.pkl"
 
 model = None
+unique_ingredients = None
+label_encoder = None
 
 if not os.path.exists(MODEL_FILE_PATH):
     print("Modelo 'recipe_dt_classifier_model.pkl' não encontrado.")
@@ -39,21 +41,26 @@ with open(MODEL_FILE_PATH, "rb") as model_file:
     
 model = loaded_data["model"]
 unique_ingredients = loaded_data["unique_ingredients"]
+label_encoder = loaded_data["label_encoder"] 
     
 def predict_favorite_recipes_random_forest(user_liked_ingredients):
-    if model is None:
-        raise ValueError("Modelo não carregado. Verifique o caminho do arquivo do modelo.")
+    if model is None or label_encoder is None: 
+        raise ValueError("Um ou mais componentes do modelo (Random Forest, LabelEncoder) não foram carregados. Verifique o caminho do arquivo do modelo.")
     
     one_hot_encoded_user_tastes = one_hot_encode_user_data(user_liked_ingredients, unique_ingredients)
     
-    probs = model.predict_proba([one_hot_encoded_user_tastes])[0]
+    user_data_np = np.array(one_hot_encoded_user_tastes).reshape(1, -1) 
+    
+    probs = model.predict_proba(user_data_np)[0] 
     
     top3_labels_index = np.argsort(-probs)[:3]
     top3_probs = -np.sort(-probs)[:3]
-    top3_recipes = [model.classes_[i] for i in top3_labels_index]
+    
+    top3_encoded_labels = [model.classes_[i] for i in top3_labels_index]
+    top3_recipes_names = label_encoder.inverse_transform(top3_encoded_labels)
 
     result = []
-    for recipe_name, score in zip(top3_recipes, top3_probs):
+    for recipe_name, score in zip(top3_recipes_names, top3_probs):
         ingredients = recipes.get(recipe_name, [])
         result.append({
             "name": recipe_name,
@@ -62,4 +69,3 @@ def predict_favorite_recipes_random_forest(user_liked_ingredients):
             "instructions": ""
         })
     return result
-    
