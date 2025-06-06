@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flasgger import swag_from
-from services.knn_service import recommend_top_3_foods_knn, get_user_profile_one_hot_encoded
+from services.knn_service import predict_favorite_recipes_knn 
 from services.decision_tree_service import predict_favorite_recipes_random_forest
 from services.naive_bayes_service import predict_favorite_recipes_naive_bayes
 
@@ -69,9 +69,7 @@ def recommend_drinks_knn():
         if not data or 'ingredients' not in data:
             return jsonify({"error": "Parâmetro 'ingredients' é obrigatório e deve ser uma lista de strings."}), 400
 
-        user_profile = get_user_profile_one_hot_encoded(ingredients)
-        
-        top_3_drinks = recommend_top_3_foods_knn(user_profile)
+        top_3_drinks = predict_favorite_recipes_knn(ingredients) 
         
         return jsonify({"recommendations": top_3_drinks}), 200
 
@@ -79,7 +77,7 @@ def recommend_drinks_knn():
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         import traceback
-        print(f"Erro ao processar recomendação: {str(e)}")
+        print(f"Erro ao processar recomendação KNN: {str(e)}") 
         print(traceback.format_exc())
         return jsonify({"error": f"Erro interno: {str(e)}"}), 500
     
