@@ -6,7 +6,7 @@ from services.naive_bayes_service import predict_favorite_recipes_naive_bayes
 
 api_blueprint = Blueprint("api", __name__)
 
-@api_blueprint.route("knn/recommendation", methods=["POST"])
+@api_blueprint.route("recommendation/knn", methods=["POST"])
 @swag_from({
     'tags': ['Recomendações'],
     'summary': 'Retorna as 3 receitas mais recomendadas com base no algoritmo de KNN',
@@ -83,7 +83,7 @@ def recommend_drinks_knn():
     
   
 
-@api_blueprint.route("decision-tree/recommendation", methods=["POST"])
+@api_blueprint.route("recommendation/random-forest", methods=["POST"])
 @swag_from({
     'tags': ['Recomendações'],
     'summary': 'Retorna as 3 receitas mais recomendadas a partir de um modelo de árvore de decisão',
@@ -160,7 +160,7 @@ def recommend_drinks_dt():
 
 
 
-@api_blueprint.route("naive-bayes/recommendation", methods=["POST"])
+@api_blueprint.route("recommendation/naive-bayes", methods=["POST"])
 @swag_from({
     'tags': ['Recomendações'],
     'summary': 'Retorna as 3 receitas mais recomendadas com base no algoritmo de Naive Bayes',
