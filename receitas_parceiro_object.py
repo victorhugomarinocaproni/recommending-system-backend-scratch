@@ -11,7 +11,7 @@ recipes = {
     "Taco Lengua": ["cogumelo", "carne de boi", "castanha do pará", "tomate", "cebola", "limão"],
     "Taco Vegano": ["abacate", "tomate", "pimenta jalapeno", "coentro", "cogumelo", "salsa", "cebola", "nozes", "nirá", "gergilim"],
     "Taco Portenho": ["abóbora", "queijo", "carne de boi", "pimentão", "cebola", "salsa", "alho", "milho"],
-    "Quesadilla de Cogumelos": ["queijo", "cogumelos", "nirá"],
+    "Quesadilla de Cogumelos": ["queijo", "cogumelo", "nirá"],
     "Burrito": ["tortilla", "trigo", "carne de frango", "queijo", "feijão", "tomate", "cebola", "limão", "repolho", "ovo", "mostarda"],
     "Chimichanga": ["tortilla", "carne de boi", "queijo", "repolho", "ovo", "mostarda", "feijão", "tomate", "cebola", "limão", "abacate"],
     "Burrito Al Pastor": ["tortilla", "trigo", "carne de porco", "abacaxi", "queijo", "feijão", "tomate", "cebola", "limão", "repolho"]
